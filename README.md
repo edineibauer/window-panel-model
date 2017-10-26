@@ -1,9 +1,13 @@
-# Panel
+# Window Panel Model
 
-
+#demonstração:
+![](http://ontab.com.br/uploads/images/2017/10/demo-window-panel-modal.gif)
 
 #Instalação:
-via cdnjs:
+#### via npm [window-panel-model](https://www.npmjs.com/package/window-panel-model)
+``npm install window-panel-model``
+#### via cdnjs:
+* baixe esta biblioteca e inclua-o no seu projeto os seguintes arquivos
 ```html
 <!-- Lembre-se de incluir jQuery :) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
@@ -322,7 +326,11 @@ $('#button').panel({
 # Autor
 * Desenvolvedor: Edinei J. Bauer
 * Email: `edineibauer@gmail.com`
-# Updates
+
+#Bugs? 
+Encontrou um bug? Reporte! Isso é um software livre e precisa de ajuda.
+
+# Contribuição
 Qualquer melhoria do código, seja para redução do código, 
 implementação de funções extras ou melhoria do desempenho, vair ser bem-vinda, 
 * ``Aguardo sua sugestão.``
