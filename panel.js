@@ -6,54 +6,32 @@ $(function ($) {
     $.fn.panel = function (options) {
         var panel = {
             id: options.id || Math.floor((Math.random() * 10000000)),
-            title: options.title || "",
             drag: function ($ontab, $drag) {
                 dragResizeAction($ontab, $drag, 'd', control.resize, control.onResize, control.onDrag);
             },
             minimize: function ($panel) {
                 if ($panel.attr("data-minimize") === "1") {
-                    minimizePanelOut($panel, effect.speed, effect.blur, control.resize, control.onResize, control.onDrag);
+                    minimizePanelOut($panel, control.speed, control.blur, control.resize, control.onResize, control.onDrag);
 
                 } else {
 
-                    minimizePanelIn($panel, effect.speed, effect.blur);
+                    minimizePanelIn($panel, control.speed, control.blur);
                     setTimeout(function () {
                         $panel.find(".ontab-header").off("mousedown").on("click", function () {
                             panel.minimize($panel);
                         });
-                    }, effect.speed * 1000);
+                    }, control.speed * 1000);
                 }
             },
             maximize: function ($panel) {
-                if ($panel.attr("data-maximize") === "1") maximizePanelOut($panel, effect.speed, control.resize, control.onResize, control.onDrag);
-                else maximizePanelIn($panel, effect.speed, control.resize);
-                panelScrool(effect.blur);
+                if ($panel.attr("data-maximize") === "1") maximizePanelOut($panel, control.speed, control.resize, control.onResize, control.onDrag);
+                else maximizePanelIn($panel, control.speed, control.resize);
+                panelScrool(control.blur);
             },
             close: function ($panel) {
-                closePanel($panel, effect.blur);
+                closePanel($panel, control.blur);
             }
         };
-
-        var effect = {
-            speed: 0.25,
-            blur: true
-        };
-        $.extend(effect, options.effect);
-
-        var css = {
-            "top": parseInt(wht * (wwt < 900 ? (wwt < 500 ? 0 : 0.025) : 0.05)),
-            "left": parseInt(wwt * (wwt < 900 ? (wwt < 500 ? 0 : 0.05) : 0.1)),
-            "width": parseInt(wwt * (wwt < 900 ? (wwt < 500 ? 1 : 0.9) : 0.8)),
-            "height": parseInt(wht * (wwt < 900 ? (wwt < 500 ? 1 : 0.95) : 0.9)),
-            "z-index": 1,
-            "transition-duration": effect.speed * 1.3 + "s",
-            "border-radius": 0,
-            "min-width": 190,
-            "max-width": wwt,
-            "min-height": 30,
-            "max-height": wht
-        };
-        $.extend(css, options.css);
 
         var control = {
             drag: true,
@@ -65,9 +43,27 @@ $(function ($) {
             onMinimize: false,
             onMaximize: false,
             onDrag: false,
-            onResize: false
+            onResize: false,
+            speed: 0.25,
+            blur: true,
+            clickOut: false
         };
         $.extend(control, options.control);
+
+        var css = {
+            "top": parseInt(wht * (wwt < 900 ? (wwt < 500 ? 0 : 0.025) : 0.05)),
+            "left": parseInt(wwt * (wwt < 900 ? (wwt < 500 ? 0 : 0.075) : 0.15)),
+            "width": parseInt(wwt * (wwt < 900 ? (wwt < 500 ? 1 : 0.85) : 0.7)),
+            "height": parseInt(wht * (wwt < 900 ? (wwt < 500 ? 1 : 0.95) : 0.9)),
+            "z-index": 1,
+            "transition-duration": control.speed * 1.3 + "s",
+            "border-radius": 0,
+            "min-width": 190,
+            "max-width": wwt,
+            "min-height": 30,
+            "max-height": wht
+        };
+        $.extend(css, options.css);
 
         var attr = {
             "data-drag": control.drag === true ? 1 : 0,
@@ -81,6 +77,14 @@ $(function ($) {
         $.extend(attr, options.attr);
         attr.id = panel.id;
 
+        var header = {
+            html: "",
+            css: {
+                padding: 0
+            }
+        };
+        $.extend(header, options.header);
+
         var body = {
             html: '',
             css: {
@@ -90,20 +94,17 @@ $(function ($) {
         };
         body = $.extend(true, {}, body, options.body);
 
-        /**
-         * TAB CREATE AND FUNCTIONS
-         * */
-
         var $ontab = $("<div />").attr(attr).addClass("ontab").css({
-            "left": options.target ? parseInt(options.target.offset().left) + parseInt(options.target.width()*0.5) : wwt * 0.5,
-            "top": options.target ? parseInt(options.target.offset().top - $(window).scrollTop()) + parseInt(options.target.height()*0.5) : wht * 0.5
+            "left": options.target ? getCenterLeftTarget(options.target) : getCenterLeftTarget(this),
+            "top": options.target ? getCenterTopTarget(options.target) : getCenterTopTarget(this)
         }).appendTo("body");
+
         setTimeout(function () {
             $ontab.css(css);
         }, 1);
 
-        var $drag = $("<div />").addClass("ontab-header").prependTo($ontab);
-        $("<div />").addClass("title").text(panel.title).prependTo($drag);
+        var $drag = $("<div />").addClass("ontab-header").css(header.css).prependTo($ontab);
+        $("<div />").addClass("title").text(header.html).css("background", $drag.css("background")).prependTo($drag);
         $("<div />").addClass("ontab-content").css(body.css).html(body.html).prependTo($ontab);
 
         if (control.minimize) {
@@ -157,7 +158,21 @@ $(function ($) {
             $(this).css("z-index", getLastIndex($(this)));
         });
 
-        panelScrool(effect.blur);
+        panelScrool(control.blur);
+
+        if(control.clickOut) {
+            $(document).on("mousedown", function (e) {
+                if (!$ontab.is(e.target) && $ontab.has(e.target).length === 0) {
+                    if($ontab.attr("data-minimize") === "0") {
+                        if (control.clickOut === "minimize") {
+                            panel.minimize($ontab);
+                        } else {
+                            panel.close($ontab);
+                        }
+                    }
+                }
+            });
+        }
     };
 
     $.fn.scrollBlock = function (enable) {
@@ -176,17 +191,24 @@ $(function ($) {
 
 
 var timeout;
-
 function blur() {
-    timeout = setTimeout( function() {
+    timeout = setTimeout(function () {
         $("body").children("*:not(script, style, .ontab)").each(function () {
             $(this).addClass('ontab-blur');
         });
-    }, 75 );
+    }, 75);
+}
+
+function getCenterTopTarget($target) {
+    return parseInt($target.offset().top - $(window).scrollTop()) + parseInt($target.height() * 0.5);
+}
+
+function getCenterLeftTarget($target) {
+    return parseInt($target.offset().left) + parseInt($target.width() * 0.5);
 }
 
 function blurOut() {
-    clearTimeout( timeout );
+    clearTimeout(timeout);
     $(".ontab-blur").removeClass('ontab-blur');
 }
 
@@ -196,15 +218,18 @@ function closePanel($panel, blur) {
         reazusteMinimalize();
     }
     $panel.remove();
-    panelScrool(blur);
+
+    setTimeout(function () {
+        panelScrool(blur);
+    }, 1);
 }
 
-function stop (event, M) {
+function stop(event, M) {
     $(document).off('mousemove mouseup');
     return dragResizeModule(event, M);
 }
 
-function dragResizeAction ($ontab, $resize, key, haveResize, onResize, onDrag) {
+function dragResizeAction($ontab, $resize, key, haveResize, onResize, onDrag) {
     $resize.on('mousedown', {e: $ontab, k: key}, function (v) {
         $ontab.css({"transition-duration": "0s", "z-index": getLastIndex($ontab)});
         var changeState = 0;
@@ -278,7 +303,7 @@ function dragResizeAction ($ontab, $resize, key, haveResize, onResize, onDrag) {
     });
 }
 
-function resize ($ontab, $resize, resize, onResize, onDrag) {
+function resize($ontab, $resize, resize, onResize, onDrag) {
     dragResizeAction($ontab, $resize, 'r', resize, onResize, onDrag);
 }
 
@@ -359,10 +384,10 @@ function maximizePanelIn($panel, speed, resize) {
         'left': '0'
     }).find(".ontab-content").css("height", wht - 45 + "px");
 
-    if(resize) $panel.find(".ontab-resize").off("mousedown").css("cursor", "initial");
+    if (resize) $panel.find(".ontab-resize").off("mousedown").css("cursor", "initial");
 }
 
-function dragResizeModule (v, M) {
+function dragResizeModule(v, M) {
     if (M.k === 'd') {
         var left = M.X + v.pageX - M.pX;
         var top = M.Y + v.pageY - M.pY;
@@ -386,7 +411,7 @@ function dragResizeModule (v, M) {
     }
 }
 
-function storePosition ($panel) {
+function storePosition($panel) {
     $panel.attr({
         "data-width": 2 + parseInt($panel.width() + parseInt($panel.css("padding-left")) + parseInt($panel.css("padding-right"))),
         "data-height": 2 + parseInt($panel.height() + parseInt($panel.css("padding-top")) + parseInt($panel.css("padding-bottom"))),
@@ -395,24 +420,26 @@ function storePosition ($panel) {
     });
 }
 
-function panelScrool (isBlur) {
+function panelScrool(isBlur) {
     var haveSomeOntabOpen = false;
-    $(".ontab").each(function () {
-        if ($(this).attr("data-minimize") === "0") {
-            haveSomeOntabOpen = true;
-        }
-    });
+    if ($(".ontab").length) {
+        $(".ontab").each(function () {
+            if ($(this).attr("data-minimize") === "0") {
+                haveSomeOntabOpen = true;
+            }
+        });
+    }
 
     if (haveSomeOntabOpen) {
         $("html").scrollBlock();
-        if(isBlur) blur();
+        if (isBlur) blur();
     } else {
         $("html").scrollBlock(false);
-        if(isBlur) blurOut();
+        if (isBlur) blurOut();
     }
 }
 
-function getLastIndex ($tab) {
+function getLastIndex($tab) {
     var zindex = parseInt($tab.css("z-index"));
     $(".ontab").each(function () {
         if ($(this).attr("data-minimize") === "0" && $(this).attr("id") !== $tab.attr("id")) {
@@ -433,7 +460,7 @@ function reazusteMinimalize() {
     });
 }
 
-function getInt (E, k) {
+function getInt(E, k) {
     return parseInt(E.css(k)) || false;
 }
 

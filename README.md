@@ -57,7 +57,7 @@ $('#button').panel({
 ```
 o header.html é o nome da sua janela, e serve para identificação do usuário 
 ao utilizar mais que uma janela. Ao minimizar uma janela, somente este título ficará
-a amostra para identificação. O title tem por padrão largura de 140px, 
+a amostra para identificação. O html do header tem por padrão largura de 140px, 
 tendo espaço para cerca de 18 caracteres. Para alterar este tamanho, modifique no panel.css
 
 #Conteúdo da Janela
@@ -217,17 +217,18 @@ $("#button").panel({
 });
 ```
 # Efeitos
-#### blur: 
+para controlar alguns efeitos, utilizamos o atributo `control`.
+#### control.blur: 
 * Descrição: Deixa os elementos dentro do body ofuscados, com excessão das janelas.
 * Valor Padrão: true,
 * Valores Aceitos: true, false, 1, 0.
 
-#### speed: 
+#### control.speed: 
 * Descrição: controla velocidade das transições entre ações em segundos.
 * Valor Padrão: 0.25,
 * Valores Aceitos: 0.01 ~ 10
 
-#### clickOut: 
+#### control.clickOut: 
 * Descrição: executa ação de fechamento ao clicar fora da janela quando for true. 
 Minimiza janela quando valor for 'minimize'
 * Valor Padrão: false,
@@ -236,7 +237,7 @@ Minimiza janela quando valor for 'minimize'
 #### Confira um exemplo de aplicação do controle de efeitos
 ```js
 $('#button').panel({
-    effect: {
+    control: {
         blur: false, //remove efeito de blur do fundo
         speed: 0.01, //para remover transição.
         clickOut: 'minimize' // minimaliza janela se clicar fora dela.
@@ -254,20 +255,26 @@ $('#button').panel({
 
 <sctipt>
     $("#btnWin").panel({
-        header: {
+        header: { // cabeçalho da janela
             html: 'Demo Janela',
             css: {
                 background: 'tomato'
             }
         },
-        body: {
+        body: { // conteúdo da janela
             html: '<h2>Conteúdo da janela</h2>',
             css: {
                 background: '#EEEEEE',
                 padding: '15px 30px'
             }
         },
-        control: {
+        css: {//janela estilo
+            width: '400px', //inicia com 400px largura
+            height: '500px', //inicia com 500px de altura
+            left: '300px' //inicia com 300px da esquerda
+            // top é deixado no padrão, pois não foi definido
+        }
+        control: { //controle
             resize: false,
             speed: 0.5,
             clickOut: 'minimize',
@@ -292,5 +299,11 @@ $('#button').panel({
         }
     });
 </sctipt>
-
 ```
+# Autor
+* Desenvolvedor: Edinei J. Bauer
+* Email: `edineibauer@gmail.com`
+# Updates
+Qualquer melhoria do código, seja para redução do código, 
+implementação de funções extras ou melhoria do desempenho, vair ser bem-vinda, 
+* ``Aguardo sua sugestão.``

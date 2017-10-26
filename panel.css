@@ -41,7 +41,6 @@
     position: absolute;
     top: 0;
     left: 0;
-    background: #FFF;
     overflow: hidden;
     height: 30px;
 }
@@ -62,7 +61,6 @@
 
 .ontab-button {
     float: right;
-    background: #FFFFFF;
     width: 50px;
     height: 30px;
     overflow: hidden;
