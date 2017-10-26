@@ -18,33 +18,40 @@ via cdnjs:
 ```js
 $('#button').panel();
 ```
+
 ### Elemento target
 a janela abre com animação partindo de um target. 
 O elemento target será o elemento que chamar o panel(). 
 Nesse exemplo acima, será o nosso botão com id = button.
-É possível ainda definir um target diferente dentro dos parâmetros do nosso panel().
+É possível ainda definir um atributo `target` diferente dentro dos parâmetros do nosso panel().
 * Veja abaixo um exemplo:
+
 ```js
 $('html').panel({
     target: $("#button")
 });
 ```
-perceba que foi necessário mandarmos o elemento como target, 
+perceba que foi necessário mandarmos o ``elemento`` como target, 
 e não uma referência ao seu id, ou class
+
 #Identificação da Janela
 nossa janela precisa ser única, e por isso é gerado um id de identificação da janela.
 o id é gerado de forma aleatória com números que variam de 0 a 10000000.
-De todo modo, se você precisar manipular esse id, é necessário fornecer seu próprio id.
+De todo modo, se você precisar manipular esse id, 
+é necessário fornecer seu próprio atributo `id`.
 * Observe o modelo abaixo:
+
 ```js
 $('#button').panel({
     id: 'id-da-minha-janela-de-post'
 });
 ```
+
 #Header
 Cabeçalho da janela, podemos nomear nossa janela aqui, e atribuir estilo,
-basta colocarmos o atributo 'header'.
+basta colocarmos o atributo `header`.
 * vejamos abaixo:
+
 ```js
 $('#button').panel({
     header: {
@@ -55,15 +62,17 @@ $('#button').panel({
     }
 });
 ```
+
 o header.html é o nome da sua janela, e serve para identificação do usuário 
 ao utilizar mais que uma janela. Ao minimizar uma janela, somente este título ficará
 a amostra para identificação. O html do header tem por padrão largura de 140px, 
 tendo espaço para cerca de 18 caracteres. Para alterar este tamanho, modifique no panel.css
 
 #Conteúdo da Janela
-Para controlar o conteúdo da janela, é preciso atacarmos o atributo 'body'. 
-Onde é possível determinarmos seu conteúdo ('html') e seu estilo ('css').
+Para controlar o conteúdo da janela, é preciso atacarmos o atributo `body`. 
+Onde é possível determinarmos seu conteúdo (`html`) e seu estilo (`css`).
 * Veja o exemplo abaixo
+
 ###Exemplo de aplicação de estilo:
 ```js
 $('#button').panel({
@@ -76,8 +85,10 @@ $('#button').panel({
     }
 });
 ```
+
 #Estilo da Janela
-Para modificar o estilo da janela, basta utilizar-mos o atributo 'css'.
+Para modificar o estilo da janela, basta utilizar-mos o atributo `css`.
+
 * Veja abaixo
 ```js
 $('#button').panel({
@@ -88,9 +99,11 @@ $('#button').panel({
     }
 });
 ```
+
 #Atributos da Janela
-Também é possível definir nossos atributos da janela, tanto para uso de classes,
-quanto para outras atividades.
+Também é possível definir nossos atributos da janela através do atributo `attr`, 
+para definição de qualquer atributo suportado pelo html.
+
 * Veja um exemplo
 ```js
 $('#button').panel({
@@ -101,21 +114,23 @@ $('#button').panel({
     }
 });
 ```
+
 #Botões de Cabeçalho da Janela
 por padrão, a janela inicia com 3 botões, o de minimizar, maximizar e fechar.
 É possível determinar quais botões você quer para sua janela. 
-Para isso, iremos atacar o atributo 'control'.
-#### close: 
+Para isso, iremos atacar o atributo `control`.
+
+#### control.close: 
 * Descrição: Fecha a janela permanentemente, excluíndo todos os dados da janela.
 * Valor Padrão: true,
 * Valores Aceitos: true, false, 1, 0.
 
-#### maximize: 
+#### control.maximize: 
 * Descrição: Coloca a janela em tamanho máximo do site. Dando total foco a essa janela
 * Valor Padrão: true,
 * Valores Aceitos: false, true, 1, 0.
 
-#### minimize: 
+#### control.minimize: 
 * Descrição: Minimiza a janela tirando o foco dela, 
 a janela fica no final do site fixado, com tamanho mínimo.
 * Valor Padrão: true,
@@ -133,19 +148,19 @@ $("#button").panel({
 ```
 #Gatilho dos Botões
 Para definirmos outras ações extras para serem executadas ao clicar em close, minimize ou maximize.
-Basta atacarmos o atributo 'control' com os valores 'onClose', 'onMinimize', 'onMaximize'.
+Basta atacarmos o atributo `control` com os valores `onClose`, `onMinimize`, `onMaximize`.
 
-#### onClose: 
+#### control.onClose: 
 * Descrição: Executa uma ação ao fechar a janela.
 * Valor Padrão: null,
 * Valores Aceitos: function()
 
-#### onMinimize: 
+#### control.onMinimize: 
 * Descrição: Executa uma ação ao minimizar a janela.
 * Valor Padrão: null,
 * Valores Aceitos: function()
 
-#### onMaximize: 
+#### control.onMaximize: 
 * Descrição: Executa uma ação ao maximizar a janela.
 * Valor Padrão: null,
 * Valores Aceitos: function()
@@ -163,20 +178,22 @@ $("#button").panel({
     }
 });
 ```
-percebam, que no exemplo acima, no atributo 'onMinimize', 
+
+percebam, que no exemplo acima, no atributo `control.onMinimize`, 
 foi retornado true na função atribuída,
-isso irá cancelar a função padrão de minimizar a janela. Também é aplicável ao 'onClose' e ao 'onMaximize'
+isso irá cancelar a função padrão de minimizar a janela. 
+Também é aplicável ao `control.onClose` e ao `control.onMaximize`
 
 #Drag e Resize
-Para não permitir o drag (arrasto da janela), basta atacar o atributo 'control.drag',
-e para não permitir o resize da janela, basta atacar o atributo 'control.resize'.
+Para não permitir o drag (arrasto da janela), basta atacar o atributo `control.drag`,
+e para não permitir o resize da janela, basta atacar o atributo `control.resize`.
 
-#### drag: 
+#### control.drag: 
 * Descrição: Define se a janela poderá ser movida (drag).
 * Valor Padrão: true,
 * Valores Aceitos: true, false, 1, 0.
 
-#### resize: 
+#### control.resize: 
 * Descrição: Define se a janela poderá ser reajustada de tamanho (resize).
 * Valor Padrão: true,
 * Valores Aceitos: true, false, 1, 0.
@@ -194,13 +211,13 @@ $("#button").panel({
 assim como os botões close, minimize e maximize, drag e resize também podem disparar funções.
 Porém somente irá disparar, ao finalizar a ação de drag, ou de resize. 
 E não é possível cancelar a ação padrão, como nos botões close, minimize e maximize.
-
-#### onDrag: 
+Novamente atacamos nosso atributo `control` para alcançar os gatilhos.
+#### control.onDrag: 
 * Descrição: Executa uma ação ao finalizar a ação de drag.
 * Valor Padrão: null,
 * Valores Aceitos: function()
 
-#### onResize: 
+#### control.onResize: 
 * Descrição: Executa uma ação ao finalizar a ação de resize.
 * Valor Padrão: null,
 * Valores Aceitos: function()
@@ -216,8 +233,10 @@ $("#button").panel({
     }
 });
 ```
+
 # Efeitos
 para controlar alguns efeitos, utilizamos o atributo `control`.
+
 #### control.blur: 
 * Descrição: Deixa os elementos dentro do body ofuscados, com excessão das janelas.
 * Valor Padrão: true,
@@ -233,7 +252,7 @@ para controlar alguns efeitos, utilizamos o atributo `control`.
 Minimiza janela quando valor for 'minimize'
 * Valor Padrão: false,
 * Valores Aceitos: false, true, 'minimize'
-#
+
 #### Confira um exemplo de aplicação do controle de efeitos
 ```js
 $('#button').panel({
