@@ -1,6 +1,9 @@
 # Window Panel Model
 
 #demonstração:
+###demonstração mult-panel drag, resize, minimize, close, focus
+![](http://ontab.com.br/uploads/images/2017/10/demo-2-window-panel-modal.gif)
+###demonstração onclickOut: 'minimize', permitindo somente 1 panel aberto
 ![](http://ontab.com.br/uploads/images/2017/10/demo-window-panel-modal.gif)
 
 #Instalação:
