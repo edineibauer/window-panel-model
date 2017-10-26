@@ -1,0 +1,12 @@
+{
+  "name": "conn/panel",
+  "description": "modal estilo janela do windows com controle de conteúdo, título, ações, botões, respostas, efeitos, atributos, estilos, tamanho, posição. Um modal completo para diversas necessidades, seja para exibir um popup, seja para abrir uma nova janela dentro da mesma janela.",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Edinei J. Bauer",
+      "email": "edineibauer@gmail.com"
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+.ontab {
+    position: fixed;
+    background: #FFFFFF;
+    border: solid 1px darkcyan;
+    -webkit-box-shadow: 3px 3px 16px -3px rgba(117, 117, 117, 1);
+    -moz-box-shadow: 3px 3px 16px -3px rgba(117, 117, 117, 1);
+    box-shadow: 3px 3px 16px -3px rgba(117, 117, 117, 1);
+    transition-duration: 0s;
+    transition-timing-function: ease;
+    overflow: hidden;
+    z-index: 1;
+    padding: 0;
+    top: 50px;
+    left: 100px;
+    width: 0;
+    height: 0;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 50%;
+}
+
+.ontab-header {
+    height: 30px;
+    width: 100%;
+    float: left;
+    position: absolute;
+    top: -1px;
+    left: 0;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.ontab-header .title {
+    float: left;
+    padding: 5px 10px;
+    cursor: default;
+    width: 140px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #FFF;
+    overflow: hidden;
+    height: 30px;
+}
+
+.ontab-header .title:first-letter {
+    text-transform: uppercase;
+}
+
+.ontab-content {
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
+    height: auto;
+    float: left;
+    word-wrap: break-word;
+    margin: 30px 0 0;
+}
+
+.ontab-button {
+    float: right;
+    background: #FFFFFF;
+    width: 50px;
+    height: 30px;
+    overflow: hidden;
+    font-size: 1.1em;
+    border: none;
+    outline: none;
+    cursor: default;
+    transition: 1s easy;
+    text-align: center;
+    padding-top: 3px;
+}
+
+.ontab-button:hover {
+    background: #DDD;
+}
+
+.btn-ontab-maxi .maxi {
+    border: solid 1px #111;
+    padding: 0 4px;
+    font-size: 0.4em;
+    float: left;
+    height: 10px;
+    margin: 7px 0 0 20px;
+}
+
+.btn-ontab-close:hover {
+    background: orangered;
+    color: #FFFFFF;
+}
+
+.ontab-resize {
+    width: 15px;
+    height: 15px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    cursor: se-resize;
+}
+
+.ontab-blur{
+    opacity: 0.8;
+    transition: all 0.15s ease;
+    filter: blur(8px);
+}
+
+@media screen and (max-width: 500px) {
+    .btn-ontab-maxi {
+        display: none;
+    }
+}
