@@ -2,8 +2,10 @@ const wwt = parseInt($(window).width());
 const wht = parseInt($(window).height());
 
 $(function ($) {
-
     $.fn.panel = function (options) {
+        options = options || {};
+        options.target = options.target || this;
+
         var panel = {
             id: options.id || Math.floor((Math.random() * 10000000)),
             drag: function ($ontab, $drag) {
@@ -27,9 +29,6 @@ $(function ($) {
                 if ($panel.attr("data-maximize") === "1") maximizePanelOut($panel, control.speed, control.resize, control.onResize, control.onDrag);
                 else maximizePanelIn($panel, control.speed, control.resize);
                 panelScrool(control.blur);
-            },
-            close: function ($panel) {
-                closePanel($panel, control.blur);
             }
         };
 
@@ -46,7 +45,9 @@ $(function ($) {
             onResize: false,
             speed: 0.25,
             blur: true,
-            clickOut: false
+            clickOut: false,
+            timeOut: false,
+            closeFunction: false
         };
         $.extend(control, options.control);
 
@@ -58,20 +59,19 @@ $(function ($) {
             "z-index": 1,
             "transition-duration": control.speed * 1.3 + "s",
             "border-radius": 0,
-            "min-width": 190,
+            "min-width": 90,
             "max-width": wwt,
             "min-height": 30,
             "max-height": wht
         };
         $.extend(css, options.css);
+        css = processaCss(css);
 
         var attr = {
             "data-drag": control.drag === true ? 1 : 0,
-            "data-top": css.top,
-            "data-left": css.left,
-            "data-width": css.width,
-            "data-height": css.height
+            "data-top": css.top
         };
+
         if (control.minimize) attr['data-minimize'] = 0;
         if (control.maximize) attr['data-maximize'] = 0;
         $.extend(attr, options.attr);
@@ -80,35 +80,66 @@ $(function ($) {
         var header = {
             html: "",
             css: {
-                padding: 0
-            }
+                padding: "5px 10px"
+            },
+            class: ""
         };
         $.extend(header, options.header);
+        header.css = processaCss(header.css);
 
         var body = {
             html: '',
+            ajax: {
+                src: (typeof HOME !== 'undefined' ? HOME : "./") + "request/post"
+            },
             css: {
                 padding: 0,
-                height: parseInt(css.height) - 45
+                height: parseInt(css.height) - (control.resize ? 45 : 30)
             }
         };
         body = $.extend(true, {}, body, options.body);
+        body.css = processaCss(body.css);
 
-        var $ontab = $("<div />").attr(attr).addClass("ontab").css({
-            "left": options.target ? getCenterLeftTarget(options.target) : getCenterLeftTarget(this),
-            "top": options.target ? getCenterTopTarget(options.target) : getCenterTopTarget(this)
-        }).appendTo("body");
+        var $ontab = $("<div />").addClass("ontab").appendTo("body");
+        var $header = $("<div />").addClass("ontab-header").addClass(header.class).prependTo($ontab);
+        var $title = $("<div />").addClass("ontab-title").html(header.html).css(header.css).prependTo($header);
+        $header.css("background", $title.css("background")).css("height", $title.css("height"));
+        var $body = $("<div />").addClass("ontab-content").css(body.css).css("margin-top", (parseInt($title.css("height")) - 1)).html(body.html).prependTo($ontab);
 
-        setTimeout(function () {
-            $ontab.css(css);
-        }, 1);
+        /* get WIDTH from auto css style */
+        if(css.width === "auto") {
+            $ontab.css("width", "auto");
+            css.width = parseInt($ontab.width()) + 20;
+        }
 
-        var $drag = $("<div />").addClass("ontab-header").css(header.css).prependTo($ontab);
-        $("<div />").addClass("title").text(header.html).css("background", $drag.css("background")).prependTo($drag);
-        $("<div />").addClass("ontab-content").css(body.css).html(body.html).prependTo($ontab);
+        /* get HEIGHT from auto css style */
+        if(css.height === "auto") {
+            $ontab.css("height", "auto");
+            css.height = parseInt($ontab.height());
+        }
+
+        /* Converte RIGHT to LEFT position if Exist */
+        if(typeof (css.right) !== "undefined") {
+            css.left = parseInt($(window).width()) - css.right - css.width;
+            delete css.right;
+        }
+
+        /* apply css INITIAL to TAB, so apply css FINAL to TAB to effect */
+        $ontab.animate(getInitialCss(options), 0,function(){
+            $ontab.css(getInitialCss(options));
+            attr['data-left'] = css.left;
+            attr['data-width'] = css.width;
+            attr['data-height'] = css.height;
+            $ontab.css(css).attr(attr);
+        });
+
+        /* check for request AJAX content */
+        if (typeof(body.ajax.param) !== 'undefined' || body.ajax.src !== (typeof (HOME) !== 'undefined' ? HOME : "./") + "request/post") {
+            ajaxLoad($body, body.ajax.src, body.ajax.param, body.ajax.done).appendTo($body);
+        }
 
         if (control.minimize) {
-            var $mini = $("<div />").addClass("ontab-button btn-ontab-mini").attr("title", "minimizar").text("-").prependTo($drag);
+            var $mini = $("<div />").addClass("ontab-button btn-ontab-mini").attr("title", "minimizar").text("-").prependTo($header);
             $mini.on("click", function () {
                 if (control.onMinimize) {
                     if (!control.onMinimize()) {
@@ -120,8 +151,8 @@ $(function ($) {
             });
         }
         if (control.maximize) {
-            var $maxi = $("<div />").addClass("ontab-button btn-ontab-maxi").attr("title", "maximizar").html("<div class='maxi'></div>").prependTo($drag);
-            $drag.on('dblclick', function () {
+            var $maxi = $("<div />").addClass("ontab-button btn-ontab-maxi").attr("title", "maximizar").html("<div class='maxi'></div>").prependTo($header);
+            $header.on('dblclick', function () {
                 panel.maximize($ontab);
             });
             $maxi.on("click", function () {
@@ -135,44 +166,56 @@ $(function ($) {
             });
         }
         if (control.close) {
-            var $close = $("<div />").addClass("ontab-button btn-ontab-close").attr("title", "fechar").text("x").prependTo($drag);
+            var $close = $("<div />").addClass("ontab-button btn-ontab-close").attr("title", "fechar").text("x").prependTo($header);
             $close.on("click", function () {
-                if (control.onClose) {
-                    if (!control.onClose()) {
-                        panel.close($ontab);
-                    }
-                } else {
-                    panel.close($ontab);
-                }
+                closePanel($ontab, control.blur, control.onClose);
             });
         }
         if (control.drag) {
-            panel.drag($ontab, $drag);
-        }
-        if (control.resize) {
-            var $resize = $("<div />").addClass("ontab-resize").appendTo($ontab);
-            resize($ontab, $resize, control.resize, control.onResize, control.onDrag);
+            panel.drag($ontab, $header);
         }
 
-        $ontab.css("z-index", getLastIndex($ontab)).on("mousedown", function () {
-            $(this).css("z-index", getLastIndex($(this)));
+        $ontab.off("mousedown").on("mousedown", function () {
+            $(this).css("z-index", getLastIndex());
         });
+
+        setTimeout(function () {
+            $ontab.css("z-index", getLastIndex())
+        }, 1);
 
         panelScrool(control.blur);
 
-        if(control.clickOut) {
+        if (control.clickOut) {
             $(document).on("mousedown", function (e) {
                 if (!$ontab.is(e.target) && $ontab.has(e.target).length === 0) {
-                    if($ontab.attr("data-minimize") === "0") {
+                    if (!$ontab.attr("data-minimize") || $ontab.attr("data-minimize") === "0") {
                         if (control.clickOut === "minimize") {
                             panel.minimize($ontab);
                         } else {
-                            panel.close($ontab);
+                            closePanel($ontab, control.blur, control.onClose);
                         }
                     }
                 }
             });
         }
+
+        if (control.timeOut) {
+            setTimeout(function () {
+                $ontab.css("transition-duration", (control.speed * 1.3) + "s");
+                if (control.timeOut.out === "left" || control.timeOut.out === "right") $ontab.css("left", (control.timeOut.out === "left" ? (parseInt($ontab.width()) * -1) : $(window).width()));
+                else $ontab.css("top", (control.timeOut.out === "top" ? parseInt($ontab.height()) * -1 : $(window).height()));
+
+                setTimeout(function () {
+                    closePanel($ontab, control.blur, control.onClose);
+                }, control.speed * 1000);
+            }, (typeof (control.timeOut.time) === "number" ? control.timeOut.time : 2500));
+        }
+
+        setTimeout(function () {
+            $ontab.css("transition-duration", "0s");
+        }, control.speed * 1000);
+
+        return panel.id;
     };
 
     $.fn.scrollBlock = function (enable) {
@@ -189,8 +232,96 @@ $(function ($) {
     };
 }(jQuery));
 
+function getInitialCss(options) {
+    return {
+        "top": getCenterTopTarget(options.target),
+        "left": getCenterLeftTarget(options.target),
+        "width": 0,
+        "height": 0
+    };
+}
+
+function ajaxLoad($body, $src, $param, done) {
+    var request = $.post($src, $param);
+    request.fail(function () {
+        $("html").panel(tabNotify("Arquivo não encontrado.", "erro"));
+    }).done(function (data) {
+        $(data).appendTo($body);
+        if (typeof(done) !== "undefined") {
+            done();
+        }
+    });
+
+    return $body;
+}
+
+function processaCss(style) {
+    if (typeof(style.width) === "string") {
+        if (style.width.match(/^\d{1,3}%$/g)) style.width = parseInt($(window).width()) * (parseInt(style.width) * 0.01);
+        else if (style.width.match(/^\d{1,3}[a-z]{1,3}$/g)) style.width = parseInt(style.width);
+    }
+
+    style.width = (style.width > $(document).width() ? $(document).width() : style.width);
+
+    if (typeof(style.height) === "string" && style.height !== "auto") {
+        if (style.height.match(/^\d{1,3}%$/g)) style.height = parseInt($(window).height()) * (parseInt(style.height) * 0.01);
+        else if (style.height.match(/^\d{1,3}[a-z]{1,3}$/g)) style.height = parseInt(style.height);
+    }
+
+    style.height = (style.height > $(document).height() ? $(document).height() : style.height);
+
+    if (typeof(style.top) === "string") {
+        if (style.top.match(/^\d{1,3}%$/g)) style.top = parseInt($(window).height()) * (parseInt(style.top) * 0.01);
+        else if (style.top.match(/^\d{1,3}[a-z]{1,3}$/g)) style.top = parseInt(style.top);
+        else if (style.top === "center") style.top = parseInt($(window).height()) * 0.5 - (typeof(style.height) === "number" ? style.height : 100) * 0.5 - 1;
+        else if (style.top === "top") style.top = 0;
+        else if (style.top === "bottom") style.top = parseInt($(window).height()) - (typeof(style.height) === "number" ? style.height : 100) - 1;
+        else if (style.top === "near-bottom") style.top = parseInt($(window).height()) - (typeof(style.height) === "number" ? style.height : 100) - 15;
+        else if (style.top === "near-top") style.top = 35;
+    }
+
+    if (typeof (style.right) !== "undefined") {
+
+        if (style.right === "left") {
+            delete style.right;
+            style.left = 0;
+
+        } else if (style.right === "near-left") {
+            delete style.right;
+            style.left = 45;
+
+        } else {
+            delete style.left;
+            if (style.right.match(/^\d{1,3}%$/g)) style.right = parseInt($(window).width()) * (parseInt(style.right) * 0.01);
+            else if (style.right.match(/^\d{1,3}[a-z]{1,3}$/g)) style.right = parseInt(style.right);
+            else if (style.right === "right") style.right = 0;
+            else if (style.right.match(/near/i)) style.right = 45;
+        }
+
+    } else if (typeof(style.left) === "string") {
+
+        if (style.left === "right") {
+            delete style.left;
+            style.right = 0;
+
+        } else if (style.left === "near-right") {
+            delete style.left;
+            style.right = 45;
+
+        } else {
+            if (style.left.match(/^\d{1,3}%$/g)) style.left = parseInt($(window).width()) * (parseInt(style.left) * 0.01);
+            else if (style.left.match(/^\d{1,3}[a-z]{1,3}$/g)) style.left = parseInt(style.left);
+            else if (style.left === "center") style.left = parseInt($(window).width()) * 0.5 - style.width * 0.5;
+            else if (style.left === "left") style.left = 0;
+            else if (style.left.match(/near/i)) style.left = 45;
+        }
+    }
+
+    return style;
+}
 
 var timeout;
+
 function blur() {
     timeout = setTimeout(function () {
         $("body").children("*:not(script, style, .ontab)").each(function () {
@@ -207,16 +338,39 @@ function getCenterLeftTarget($target) {
     return parseInt($target.offset().left) + parseInt($target.width() * 0.5);
 }
 
+function getCenterRightTarget($target) {
+    return parseInt($(window).width()) - (parseInt($target.offset().left) + parseInt($target.width() * 0.5));
+}
+
 function blurOut() {
     clearTimeout(timeout);
     $(".ontab-blur").removeClass('ontab-blur');
 }
 
-function closePanel($panel, blur) {
+function closeTab() {
+    var zindex = 0;
+    var $ontab = $(".ontab").first();
+    $(".ontab").each(function () {
+        if ($(this).attr("data-minimize") === "0" && parseInt($(this).css("z-index")) >= zindex) {
+            zindex = parseInt($(this).css("z-index"));
+            $ontab = $(this);
+        }
+    });
+    $ontab.find(".ontab-header").find(".btn-ontab-close").trigger("click");
+}
+
+function closePanel($panel, blur, onClose) {
+    if (onClose) {
+        if (onClose()) {
+            return false;
+        }
+    }
+
     if ($panel.attr("data-minimize") === "1") {
         $panel.attr("data-minimize", 0);
         reazusteMinimalize();
     }
+
     $panel.remove();
 
     setTimeout(function () {
@@ -266,7 +420,7 @@ function dragResizeAction($ontab, $resize, key, haveResize, onResize, onDrag) {
                     'transition-duration': '0s',
                     'width': parseInt($ontab.attr("data-width")) + 'px',
                     'height': parseInt($ontab.attr("data-height")) + 'px'
-                }).find(".ontab-content").css("height", parseInt($ontab.attr("data-height")) - 45 + 'px');
+                }).find(".ontab-content").css("height", parseInt($ontab.attr("data-height")) - (haveResize ? 45 : 30) + 'px');
 
                 if (haveResize) resize($ontab, $ontab.find(".ontab-resize").css("cursor", "se-resize"), haveResize, onResize, onDrag);
             }
@@ -274,7 +428,7 @@ function dragResizeAction($ontab, $resize, key, haveResize, onResize, onDrag) {
             var newPosition = dragResizeModule(event, M);
             windowsTab.css(newPosition);
             if (M.k === "r") {
-                windowsTab.find(".ontab-content").css({height: newPosition.height - 45});
+                windowsTab.find(".ontab-content").css({height: newPosition.height - (haveResize ? 45 : 30)});
             }
 
         }).mouseup(function (event) {
@@ -282,7 +436,7 @@ function dragResizeAction($ontab, $resize, key, haveResize, onResize, onDrag) {
                 var newPosition = stop(event, M);
                 windowsTab.css(newPosition);
                 if (M.k === "r") {
-                    windowsTab.find(".ontab-content").css({height: newPosition.height - 45});
+                    windowsTab.find(".ontab-content").css({height: newPosition.height - (haveResize ? 45 : 30)});
                     if (onResize) onResize();
                 } else {
                     if (onDrag) onDrag();
@@ -362,7 +516,7 @@ function maximizePanelOut($panel, speed, haveResize, onResize, onDrag) {
         'height': parseInt($panel.attr("data-height")) + 'px',
         'top': parseInt($panel.attr("data-top")) + 'px',
         'left': parseInt($panel.attr("data-left")) + 'px'
-    }).find(".ontab-content").css("height", parseInt($panel.attr("data-height")) - 45 + 'px');
+    }).find(".ontab-content").css("height", parseInt($panel.attr("data-height")) - (haveResize ? 45 : 30) + 'px');
 
     setTimeout(function () {
         $panel.css("transition-duration", "0s");
@@ -371,7 +525,7 @@ function maximizePanelOut($panel, speed, haveResize, onResize, onDrag) {
     if (haveResize) resize($panel, $panel.find(".ontab-resize").css("cursor", "se-resize"), haveResize, onResize, onDrag);
 }
 
-function maximizePanelIn($panel, speed, resize) {
+function maximizePanelIn($panel, speed, haveResize) {
     if ($panel.attr("data-minimize") === "1") {
         storePosition($panel);
     }
@@ -382,9 +536,9 @@ function maximizePanelIn($panel, speed, resize) {
         'height': '100%',
         'top': '-1px',
         'left': '0'
-    }).find(".ontab-content").css("height", wht - 45 + "px");
+    }).find(".ontab-content").css("height", wht - (haveResize ? 45 : 30) + "px");
 
-    if (resize) $panel.find(".ontab-resize").off("mousedown").css("cursor", "initial");
+    if (haveResize) $panel.find(".ontab-resize").off("mousedown").css("cursor", "initial");
 }
 
 function dragResizeModule(v, M) {
@@ -439,12 +593,10 @@ function panelScrool(isBlur) {
     }
 }
 
-function getLastIndex($tab) {
-    var zindex = parseInt($tab.css("z-index"));
+function getLastIndex() {
+    var zindex = 1;
     $(".ontab").each(function () {
-        if ($(this).attr("data-minimize") === "0" && $(this).attr("id") !== $tab.attr("id")) {
-            zindex = (parseInt($(this).css("z-index")) >= zindex ? parseInt($(this).css("z-index")) + 1 : zindex);
-        }
+        zindex = ($(this).attr("data-minimize") === "0" && parseInt($(this).css("z-index")) >= zindex ? parseInt($(this).css("z-index")) + 1 : zindex);
     });
 
     return zindex;
@@ -463,7 +615,3 @@ function reazusteMinimalize() {
 function getInt(E, k) {
     return parseInt(E.css(k)) || false;
 }
-
-$("#btnt").on("click", function () {
-    $(document).panel();
-});
