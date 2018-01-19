@@ -113,6 +113,7 @@ $(function ($) {
                 $ontab.css("width", "auto");
                 css.width = parseInt($ontab.width()) + 20;
             }
+            if(css.width < 190) css.width = 190;
 
             /* get HEIGHT from auto css style */
             if (css.height === "auto") {
